@@ -3,6 +3,7 @@ package fitloop.config;
 import fitloop.member.jwt.JWTFilter;
 import fitloop.member.jwt.JWTUtil;
 import fitloop.member.jwt.LoginFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,12 +14,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    //AuthenticationManager가 인자로 받을 AuthenticationConfiguraion 객체 생성자 주입
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
 
@@ -40,8 +43,29 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    private CorsConfigurationSource corsConfigurationSource() {
+        return request -> createCorsConfiguration();
+    }
+
+    private CorsConfiguration createCorsConfiguration() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setMaxAge(3600L);
+        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+
+        return configuration;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        //CORS
+        http
+                .cors(corsCustomizer -> corsCustomizer.configurationSource(corsConfigurationSource()));
+
         //csrf disable
         http
                 .csrf((auth) -> auth.disable());
