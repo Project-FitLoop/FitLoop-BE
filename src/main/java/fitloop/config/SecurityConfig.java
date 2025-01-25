@@ -31,7 +31,7 @@ public class SecurityConfig {
 
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
-        this.refreshRepository = refreshRepository;g
+        this.refreshRepository = refreshRepository;
     }
 
     //AuthenticationManager Bean 등록
