@@ -81,9 +81,9 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/register").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
-                        .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/glogin", "/api/v1/**", "/api/v1/register").permitAll()
+                        .requestMatchers("/api/v1/admin").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/reissue").permitAll()
                         .anyRequest().authenticated());
 
         //JWTFilter 등록
