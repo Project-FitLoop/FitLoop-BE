@@ -4,8 +4,10 @@ import fitloop.member.dto.request.RegisterRequest;
 import fitloop.member.service.RegisterService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import jakarta.validation.Valid;
 
 @Controller
 @ResponseBody
@@ -19,7 +21,7 @@ public class RegisterController {
     }
 
     @PostMapping("/register")
-    public String registerProcess(RegisterRequest registerRequest) {
+    public String registerProcess(@Valid @RequestBody RegisterRequest registerRequest) {
 
         System.out.println(registerRequest.getUsername());
         registerService.registerProcess(registerRequest);
