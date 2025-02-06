@@ -1,9 +1,12 @@
 package fitloop.member.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fitloop.member.dto.request.CustomUserDetails;
+import fitloop.member.dto.request.LoginRequest;
 import fitloop.member.entity.RefreshEntity;
 import fitloop.member.repository.RefreshRepository;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,7 +17,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.StreamUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -35,13 +41,25 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        String username = obtainUsername(request);
-        String password = obtainPassword(request);
+        LoginRequest loginRequest = new LoginRequest();
 
-        //스프링 시큐리티에서 username과 password를 검증하기 위해서는 token에 담아야 함
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ServletInputStream inputStream = request.getInputStream();
+            String messageBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+            loginRequest = objectMapper.readValue(messageBody, LoginRequest.class);
 
-        //token에 담은 검증을 위한 AuthenticationManager로 전달
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
+
+        System.out.println(username);
+
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
+
         return authenticationManager.authenticate(authToken);
     }
 
