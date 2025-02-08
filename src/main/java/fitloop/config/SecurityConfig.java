@@ -78,21 +78,27 @@ public class SecurityConfig {
         //http basic 인증 방식 disable
         http
                 .httpBasic((auth) -> auth.disable());
+
+        // AuthenticationManager 가져오기
+        AuthenticationManager authenticationManager = authenticationManager(authenticationConfiguration);
+        //로그인 엔드포인트 변경
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshRepository);
+        loginFilter.setFilterProcessesUrl("/api/v1/login");
+
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/api/v1/**", "/api/v1/register").permitAll()
+                        .requestMatchers("/api/v1/login", "/api/v1/register").permitAll()
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN")
                         .requestMatchers("/api/v1/reissue").permitAll()
                         .anyRequest().authenticated());
 
-        //JWTFilter 등록
-        http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
 
-        //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
-        http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
+        //JWT 필터 등록 (LoginFilter 전에 실행되도록 설정)
+        http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+
+        //LoginFilter 등록 (설정한 loginFilter 객체를 사용)
+        http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
 
         //세션 설정
         http
