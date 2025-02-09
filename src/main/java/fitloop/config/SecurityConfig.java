@@ -90,13 +90,14 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/api/v1/login", "/api/v1/register").permitAll()
+                        .requestMatchers("/api/v1/user").hasRole("USER")
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN")
                         .requestMatchers("/api/v1/reissue").permitAll()
                         .anyRequest().authenticated());
 
 
         //JWT 필터 등록 (LoginFilter 전에 실행되도록 설정)
-        http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         //LoginFilter 등록 (설정한 loginFilter 객체를 사용)
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
