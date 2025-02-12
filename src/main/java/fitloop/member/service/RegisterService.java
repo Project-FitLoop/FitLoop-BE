@@ -30,7 +30,6 @@ public class RegisterService {
 
         data.setUsername(username);
         data.setPassword(bCryptPasswordEncoder.encode(password));
-        data.setRole("ROLE_ADMIN");
 
         userRepository.save(data);
     }
