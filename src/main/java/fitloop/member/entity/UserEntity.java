@@ -22,54 +22,63 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "username",
+            nullable = false)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password",
+            nullable = false)
     private String password;
 
-    @Column(name = "birth_date", nullable = false)
+    @Column(name = "birth_date",
+            nullable = false)
     private LocalDate birthday;
 
     @Enumerated(EnumType.STRING)
-    @Column(
-            name = "role",
+    @Column(name = "role",
             nullable = false,
             columnDefinition = "VARCHAR(255) DEFAULT 'SEED'")
     private Role role;
 
     @Enumerated(EnumType.STRING)
-    @Column(
-            name = "membership",
+    @Column(name = "membership",
             nullable = false,
             columnDefinition = "VARCHAR(255) DEFAULT 'MEMBER'")
     private Membership membership;
 
-    @Column(name = "phone_number", nullable = false, length = 255)
+    @Column(name = "phone_number",
+            nullable = false,
+            length = 255)
     private String phoneNumber;
 
-    @Column(name = "email", nullable = false, unique = true, length = 255)
+    @Column(name = "email",
+            nullable = false,
+            unique = true,
+            length = 255)
     private String email;
 
-    @Column(name = "login_id", length = 255)
+    @Column(name = "login_id",
+            length = 255)
     private String loginId;
 
-    @Column(name = "provider", length = 255)
+    @Column(name = "provider",
+            length = 255)
     private String provider;
 
-    @Column(name = "provider_id", length = 255)
+    @Column(name = "provider_id",
+            length = 255)
     private String providerId;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at",
+            updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(
-            name = "personal_info",
+    @Column(name = "personal_info",
             nullable = false,
             columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean personalInfo;
