@@ -1,6 +1,7 @@
 package fitloop.member.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Setter
@@ -30,8 +32,7 @@ public class UserEntity {
             nullable = false)
     private String password;
 
-    @Column(name = "birth_date",
-            nullable = false)
+    @Column(name = "birth_date")
     private LocalDate birthday;
 
     @Enumerated(EnumType.STRING)
@@ -58,28 +59,61 @@ public class UserEntity {
     private String email;
 
     @Column(name = "login_id",
+            nullable = false,
             length = 255)
     private String loginId;
 
     @Column(name = "provider",
+            nullable = false,
             length = 255)
     private String provider;
 
     @Column(name = "provider_id",
+            nullable = false,
             length = 255)
     private String providerId;
 
     @CreationTimestamp
     @Column(name = "created_at",
+            nullable = false,
             updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updated_at",
+            nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(name = "personal_info",
             nullable = false,
             columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean personalInfo;
+
+    @Builder
+    public UserEntity(
+            Long id,
+            String username,
+            String password,
+            LocalDate birthday,
+            Role role,
+            Membership membership,
+            String phoneNumber,
+            String email,
+            String loginId,
+            String provider,
+            String providerId,
+            Boolean personalInfo) {
+        this.id = id;
+        this.username = Objects.isNull(username) ? "" : username;
+        this.password = Objects.isNull(password) ? "" : password;
+        this.birthday = birthday;
+        this.role = Objects.isNull(role) ? Role.MEMBER : role;
+        this.membership = Objects.isNull(membership) ? Membership.SEED : membership;
+        this.phoneNumber = Objects.isNull(phoneNumber) ? "" : phoneNumber;
+        this.email = Objects.isNull(email) ? "" : email;
+        this.loginId = Objects.isNull(loginId) ? "" : loginId;
+        this.provider = Objects.isNull(provider) ? "" : provider;
+        this.providerId = Objects.isNull(providerId) ? "" : providerId;
+        this.personalInfo = Objects.isNull(personalInfo) ? false : personalInfo;
+    }
 }
