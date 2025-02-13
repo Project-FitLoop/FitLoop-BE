@@ -1,6 +1,7 @@
 package fitloop.member.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -24,6 +25,6 @@ public class RegisterRequest {
     @Size(min = 2, max = 50, message = "이름은 2~50자 사이여야 합니다.")
     private String name;
 
-    @Past(message = "생일은 과거 날짜여야 합니다.")
+    @Past(message = "생년월일은 과거 날짜여야 합니다.")
     private LocalDate birthday;
 }
