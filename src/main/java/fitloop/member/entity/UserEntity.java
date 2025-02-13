@@ -67,4 +67,10 @@ public class UserEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(
+            name = "personal_info",
+            nullable = false,
+            columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean personalInfo;
 }
