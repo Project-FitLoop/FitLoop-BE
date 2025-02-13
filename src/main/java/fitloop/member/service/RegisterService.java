@@ -26,10 +26,10 @@ public class RegisterService {
             return;
         }
 
-        UserEntity data = new UserEntity();
-
-        data.setUsername(username);
-        data.setPassword(bCryptPasswordEncoder.encode(password));
+        UserEntity data = UserEntity.builder()
+                .username(username)
+                .password(bCryptPasswordEncoder.encode(password))
+                .build();
 
         userRepository.save(data);
     }
