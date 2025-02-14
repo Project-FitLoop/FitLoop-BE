@@ -58,11 +58,6 @@ public class UserEntity {
             length = 255)
     private String email;
 
-    @Column(name = "login_id",
-            nullable = false,
-            length = 255)
-    private String loginId;
-
     @Column(name = "provider",
             nullable = false,
             length = 255)
@@ -99,7 +94,6 @@ public class UserEntity {
             Membership membership,
             String phoneNumber,
             String email,
-            String loginId,
             String provider,
             String providerId,
             Boolean personalInfo) {
@@ -111,7 +105,6 @@ public class UserEntity {
         this.membership = Objects.isNull(membership) ? Membership.SEED : membership;
         this.phoneNumber = Objects.isNull(phoneNumber) ? "" : phoneNumber;
         this.email = Objects.isNull(email) ? "" : email;
-        this.loginId = Objects.isNull(loginId) ? "" : loginId;
         this.provider = Objects.isNull(provider) ? "" : provider;
         this.providerId = Objects.isNull(providerId) ? "" : providerId;
         this.personalInfo = Objects.isNull(personalInfo) ? false : personalInfo;
