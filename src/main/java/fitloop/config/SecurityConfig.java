@@ -1,8 +1,10 @@
 package fitloop.config;
 
+import fitloop.member.entity.Role;
 import fitloop.member.jwt.JWTFilter;
 import fitloop.member.jwt.JWTUtil;
 import fitloop.member.jwt.LoginFilter;
+import fitloop.member.oauth.OAuth2SuccessHandler;
 import fitloop.member.repository.RefreshRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
@@ -26,12 +28,14 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, RefreshRepository refreshRepository) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, RefreshRepository refreshRepository,OAuth2SuccessHandler oAuth2SuccessHandler) {
 
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
         this.refreshRepository = refreshRepository;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
     //AuthenticationManager Bean 등록
@@ -89,11 +93,26 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/v1/login", "/api/v1/register").permitAll()
-                        .requestMatchers("/api/v1/user").hasRole("USER")
+                        .requestMatchers(
+                                "/api/v1/google",
+                                "/api/v1/login",
+                                "/api/v1/register",
+                                "/api/v1/reissue", //Refresh Token 요청 허용
+                                "/api/v1/login/oauth2/code/google", //OAuth2 로그인 후 리디렉트 허용
+                                "/api/v1/oauth2/authorization/google", //Google 로그인 시작 URL 허용
+                                "/api/v1/auth/**"
+                        ).permitAll()
+
+                        .requestMatchers("/api/v1/user").hasAuthority("MEMBER")
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN")
                         .requestMatchers("/api/v1/reissue").permitAll()
                         .anyRequest().authenticated());
+        http
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler)) //OAuth2SuccessHandler 등록)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 생성 X
+                );
 
 
         //JWT 필터 등록 (LoginFilter 전에 실행되도록 설정)
