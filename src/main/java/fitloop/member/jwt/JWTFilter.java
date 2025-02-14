@@ -1,6 +1,7 @@
 package fitloop.member.jwt;
 
 import fitloop.member.dto.request.CustomUserDetails;
+import fitloop.member.entity.Role;
 import fitloop.member.entity.UserEntity;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -72,7 +73,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(username);
-        userEntity.setRole(role);
+        userEntity.setRole(Role.valueOf(role));
         CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());

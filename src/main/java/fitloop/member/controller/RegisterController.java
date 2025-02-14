@@ -23,7 +23,7 @@ public class RegisterController {
     @PostMapping("/register")
     public String registerProcess(@Valid @RequestBody RegisterRequest registerRequest) {
 
-        System.out.println(registerRequest.getUsername());
+        System.out.println(registerRequest.getBirthday());
         registerService.registerProcess(registerRequest);
 
         return "ok";
