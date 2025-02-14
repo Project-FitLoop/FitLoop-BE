@@ -29,6 +29,7 @@ public class RegisterService {
         UserEntity data = UserEntity.builder()
                 .username(username)
                 .password(bCryptPasswordEncoder.encode(password))
+                .birthday(registerRequest.getBirthday())
                 .build();
 
         userRepository.save(data);
