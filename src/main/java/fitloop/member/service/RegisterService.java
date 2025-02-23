@@ -22,6 +22,7 @@ public class RegisterService {
         String username = registerRequest.getUsername();
         String password = registerRequest.getPassword();
         String email = registerRequest.getEmail();
+        String name = registerRequest.getName();
 
         // 사용자 이름 또는 이메일이 이미 존재하는지 확인
         if (userRepository.existsByUsername(username) || userRepository.existsByEmail(email)) {
@@ -34,6 +35,7 @@ public class RegisterService {
                 .password(bCryptPasswordEncoder.encode(password))
                 .email(email)
                 .birthday(registerRequest.getBirthday())
+                .name(name)
                 .build();
 
         return userRepository.save(user);
