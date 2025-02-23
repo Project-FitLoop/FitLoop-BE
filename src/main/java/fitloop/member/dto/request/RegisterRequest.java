@@ -27,4 +27,7 @@ public class RegisterRequest {
 
     @Past(message = "생년월일은 과거 날짜여야 합니다.")
     private LocalDate birthday;
+
+    @NotBlank(message = "이메일은 필수 입력 항목입니다.")
+    private String email;
 }

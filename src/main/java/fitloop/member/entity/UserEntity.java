@@ -1,10 +1,7 @@
 package fitloop.member.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -15,7 +12,8 @@ import java.util.Objects;
 @Entity
 @Setter
 @Getter
-
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "user")
 public class UserEntity {
@@ -35,6 +33,9 @@ public class UserEntity {
     @Column(name = "birth_date")
     private LocalDate birthday;
 
+    @Column(name = "full_name")
+    private String name;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role",
             nullable = false,
@@ -48,7 +49,7 @@ public class UserEntity {
     private Membership membership;
 
     @Column(name = "phone_number",
-            nullable = false,
+
             length = 255)
     private String phoneNumber;
 
@@ -58,18 +59,13 @@ public class UserEntity {
             length = 255)
     private String email;
 
-    @Column(name = "login_id",
-            nullable = false,
-            length = 255)
-    private String loginId;
-
     @Column(name = "provider",
-            nullable = false,
+
             length = 255)
     private String provider;
 
     @Column(name = "provider_id",
-            nullable = false,
+
             length = 255)
     private String providerId;
 
@@ -89,31 +85,10 @@ public class UserEntity {
             columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean personalInfo;
 
-    @Builder
-    public UserEntity(
-            Long id,
-            String username,
-            String password,
-            LocalDate birthday,
-            Role role,
-            Membership membership,
-            String phoneNumber,
-            String email,
-            String loginId,
-            String provider,
-            String providerId,
-            Boolean personalInfo) {
-        this.id = id;
-        this.username = Objects.isNull(username) ? "" : username;
-        this.password = Objects.isNull(password) ? "" : password;
-        this.birthday = birthday;
-        this.role = Objects.isNull(role) ? Role.MEMBER : role;
-        this.membership = Objects.isNull(membership) ? Membership.SEED : membership;
-        this.phoneNumber = Objects.isNull(phoneNumber) ? "" : phoneNumber;
-        this.email = Objects.isNull(email) ? "" : email;
-        this.loginId = Objects.isNull(loginId) ? "" : loginId;
-        this.provider = Objects.isNull(provider) ? "" : provider;
-        this.providerId = Objects.isNull(providerId) ? "" : providerId;
-        this.personalInfo = Objects.isNull(personalInfo) ? false : personalInfo;
+    @PrePersist
+    public void prePersist() {
+        this.role = (this.role == null) ? Role.MEMBER : this.role;
+        this.membership = (this.membership == null) ? Membership.SEED : this.membership;
+        this.personalInfo = (this.personalInfo == null) ? false : this.personalInfo;
     }
 }

@@ -1,9 +1,13 @@
 package fitloop.member.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fitloop.member.AuthErrorCode;
 import fitloop.member.dto.request.CustomUserDetails;
 import fitloop.member.entity.Role;
 import fitloop.member.entity.UserEntity;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,71 +18,92 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Map;
 
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JWTFilter(JWTUtil jwtUtil) {
-
         this.jwtUtil = jwtUtil;
     }
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 헤더에서 access키에 담긴 토큰을 꺼냄
         String accessToken = request.getHeader("access");
 
-        // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
-
-            filterChain.doFilter(request, response);
-
+            handleErrorResponse(response, AuthErrorCode.NOT_EXIST_ACCESS_TOKEN);
             return;
         }
 
-        // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
             jwtUtil.isExpired(accessToken);
         } catch (ExpiredJwtException e) {
-
-            //response body
-            PrintWriter writer = response.getWriter();
-            writer.print("access token expired");
-
-            //response status code
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            handleErrorResponse(response, AuthErrorCode.EXPIRED_TOKEN);
+            return;
+        } catch (SignatureException e) {
+            handleErrorResponse(response, AuthErrorCode.FAILED_SIGNATURE_TOKEN);
+            return;
+        } catch (JwtException e) {
+            handleErrorResponse(response, AuthErrorCode.INCORRECTLY_CONSTRUCTED_TOKEN);
             return;
         }
 
-        // 토큰이 access인지 확인 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(accessToken);
-
-        if (!category.equals("access")) {
-
-            //response body
-            PrintWriter writer = response.getWriter();
-            writer.print("invalid access token");
-
-            //response status code
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        if (!"access".equals(category)) {
+            handleErrorResponse(response, AuthErrorCode.NOT_WOOHAENGSHI_TOKEN);
             return;
         }
 
-        // username, role 값을 획득
         String username = jwtUtil.getUsername(accessToken);
-        String role = jwtUtil.getRole(accessToken);
+        String roleString = jwtUtil.getRole(accessToken);
+
+        Role role;
+        try {
+            role = Role.valueOf(roleString);
+        } catch (IllegalArgumentException e) {
+            handleErrorResponse(response, AuthErrorCode.INVALID_CLAIM_TYPE);
+            return;
+        }
 
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(username);
-        userEntity.setRole(Role.valueOf(role));
-        CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
+        userEntity.setRole(role);
 
+        CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
+    }
+
+    private void handleErrorResponse(HttpServletResponse response, AuthErrorCode errorCode) throws IOException {
+        if (response.isCommitted()) {
+            return;
+        }
+
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        response.getWriter().write(objectMapper.writeValueAsString(Map.of(
+                "error", errorCode.name(),
+                "message", errorCode.getMessage(),
+                "status", errorCode.getStatus().value()
+        )));
+        response.getWriter().flush();
+    }
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.startsWith("/api/v1/login")
+                || uri.startsWith("/api/v1/register")
+                || uri.startsWith("/api/v1/auth/")
+                || uri.startsWith("/api/v1/google")
+                || uri.startsWith("/api/v1/login/oauth2/code/google")
+                || uri.startsWith("/api/v1/oauth2/authorization/google")
+                || uri.startsWith("/api/v1/reissue");
     }
 }
