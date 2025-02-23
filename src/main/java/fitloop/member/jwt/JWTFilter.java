@@ -98,8 +98,12 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.startsWith("/api/v1/login") ||
-                uri.startsWith("/api/v1/register") ||
-                uri.startsWith("/api/v1/auth/");
+        return uri.startsWith("/api/v1/login")
+                || uri.startsWith("/api/v1/register")
+                || uri.startsWith("/api/v1/auth/")
+                || uri.startsWith("/api/v1/google")
+                || uri.startsWith("/api/v1/login/oauth2/code/google")
+                || uri.startsWith("/api/v1/oauth2/authorization/google")
+                || uri.startsWith("/api/v1/reissue");
     }
 }
