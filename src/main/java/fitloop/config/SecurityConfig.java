@@ -1,6 +1,7 @@
 package fitloop.config;
 
 import fitloop.common.exception.errorcode.CommonErrorCode;
+import fitloop.member.jwt.CustomLogoutFilter;
 import fitloop.member.jwt.JWTFilter;
 import fitloop.member.jwt.JWTUtil;
 import fitloop.member.jwt.LoginFilter;
@@ -12,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +35,7 @@ import java.util.Map;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
@@ -49,19 +51,16 @@ public class SecurityConfig {
         this.userRepository = userRepository;
     }
 
-    /*AuthenticationManager*/
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    /**비밀번호 암호화*/
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /*CORS 설정*/
     private CorsConfigurationSource corsConfigurationSource() {
         return request -> {
             CorsConfiguration configuration = new CorsConfiguration();
@@ -75,7 +74,6 @@ public class SecurityConfig {
         };
     }
 
-    /*Spring Security 설정 */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         AuthenticationManager authenticationManager = authenticationManager();
@@ -90,33 +88,32 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/v1/google", "/api/v1/login", "/api/v1/register",
+                        // 공개 URL은 여기서 지정 (JWTFilter 내부에 URL 체크 로직을 제거)
+                        .requestMatchers("/api/v1/google", "/api/v1/login", "/api/v1/register",
                                 "/api/v1/reissue", "/api/v1/login/oauth2/code/google",
-                                "/api/v1/oauth2/authorization/google", "/api/v1/auth/**"
-                        ).permitAll()
+                                "/api/v1/oauth2/authorization/google", "/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/user").hasAuthority("MEMBER")
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler))
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(authenticationEntryPoint()) // 401 Unauthorized 처리
-                        .accessDeniedHandler(accessDeniedHandler()) // 403 Forbidden 처리
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler())
                 );
 
-        http.addFilterAfter(new JWTFilter(jwtUtil), LoginFilter.class);
+        // JWTFilter는 헤더에 토큰이 있을 때만 인증 검증을 수행하며, 공개 URL은 SecurityConfig에서 처리됨
+        http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
         http.addFilterAt(loginFilter, LoginFilter.class);
+        http.addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
 
         return http.build();
     }
 
-    /*인증되지 않은 요청 처리 (OAuth2 리다이렉트 방지)*/
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authException) -> {
             String requestURI = request.getRequestURI();
-
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
@@ -137,7 +134,6 @@ public class SecurityConfig {
         };
     }
 
-    /*권한 없는 요청 처리 (403 Forbidden)*/
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
@@ -152,7 +148,6 @@ public class SecurityConfig {
         };
     }
 
-    /*존재하는 API인지 확인*/
     private boolean isRegisteredAPI(String requestURI) {
         return List.of(
                 "/api/v1/google", "/api/v1/login", "/api/v1/register",
