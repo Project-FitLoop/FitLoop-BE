@@ -49,9 +49,9 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                             .provider(provider)
                             .providerId(providerId)
                             .role(Role.MEMBER)
-                            .membership(Membership.LEAF) // 기본 membership 설정
-                            .password("") // OAuth 로그인은 비밀번호 X
-                            .phoneNumber("") // 기본 전화번호 없음
+                            .membership(Membership.SEED) // 기본 membership 설정
+                            .password(null) // OAuth 로그인은 비밀번호 X
+                            .phoneNumber(null) // 기본 전화번호 없음
                             .personalInfo(false) // 개인정보 동의 기본값
                             .build();
                     return userRepository.save(newUser);
