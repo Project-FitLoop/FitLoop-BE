@@ -43,9 +43,9 @@ public class GlobalExceptionHandler {
     }
 
     // 500 Internal Server Error (서버 내부 오류)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.from(CommonErrorCode.INTERNAL_SERVER_ERROR));
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(ErrorResponse.from(CommonErrorCode.INTERNAL_SERVER_ERROR));
+//    }
 }
