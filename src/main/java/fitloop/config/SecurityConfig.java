@@ -8,8 +8,6 @@ import fitloop.member.jwt.LoginFilter;
 import fitloop.member.oauth.OAuth2SuccessHandler;
 import fitloop.member.repository.RefreshRepository;
 import fitloop.member.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -91,7 +89,9 @@ public class SecurityConfig {
                         // 공개 URL은 여기서 지정 (JWTFilter 내부에 URL 체크 로직을 제거)
                         .requestMatchers("/api/v1/google", "/api/v1/login", "/api/v1/register",
                                 "/api/v1/reissue", "/api/v1/login/oauth2/code/google",
-                                "/api/v1/oauth2/authorization/google", "/api/v1/auth/**").permitAll()
+                                "/api/v1/oauth2/authorization/google", "/api/v1/auth/**"
+                                ,"/api/v1/users/profile"
+                        ).permitAll()
                         .requestMatchers("/api/v1/user").hasAuthority("MEMBER")
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -151,7 +151,7 @@ public class SecurityConfig {
     private boolean isRegisteredAPI(String requestURI) {
         return List.of(
                 "/api/v1/google", "/api/v1/login", "/api/v1/register",
-                "/api/v1/reissue", "/api/v1/auth/", "/api/v1/user", "/api/v1/admin"
+                "/api/v1/reissue", "/api/v1/auth/", "/api/v1/user", "/api/v1/admin", "/api/v1/users/profile"
         ).stream().anyMatch(requestURI::startsWith);
     }
 }
