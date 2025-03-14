@@ -21,9 +21,10 @@ public class UserController {
     }
 
     @PostMapping("/users/profile")
-    public ResponseEntity<ProfileResponse> createProfile(
+    public ResponseEntity<?> createProfile(
             @RequestBody @Valid ProfileRequest profileRequest,
-            @AuthenticationPrincipal Object principal) {
-        return userService.createProfile(profileRequest, principal);
+            @AuthenticationPrincipal Object principal,
+            @RequestHeader("access") String accessToken) {
+        return userService.createProfile(profileRequest, principal, accessToken);
     }
 }
