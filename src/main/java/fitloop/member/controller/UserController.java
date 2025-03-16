@@ -1,32 +1,30 @@
 package fitloop.member.controller;
 
-import org.springframework.http.HttpStatus;
+import fitloop.member.dto.request.ProfileRequest;
+import fitloop.member.dto.response.ProfileResponse;
+import fitloop.member.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-@Controller
-@ResponseBody
+@RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1")
 public class UserController {
+    private final UserService userService;
 
     @GetMapping("/user")
-    public ResponseEntity<Map<String, Object>> getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized"));
-        }
+    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal Object principal) {
+        return userService.getUserInfo(principal);
+    }
 
-        return ResponseEntity.ok(Map.of(
-                "username", userDetails.getUsername(),
-                "roles", userDetails.getAuthorities()
-        ));
+    @PostMapping("/users/profile")
+    public ResponseEntity<?> createProfile(
+            @RequestBody @Valid ProfileRequest profileRequest,
+            @AuthenticationPrincipal Object principal,
+            @RequestHeader("access") String accessToken) {
+        return userService.createProfile(profileRequest, principal, accessToken);
     }
 }
