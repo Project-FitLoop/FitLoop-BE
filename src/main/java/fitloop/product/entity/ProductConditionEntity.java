@@ -2,11 +2,13 @@ package fitloop.product.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "product_status")
+@Table(name = "product_condition")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,12 +19,20 @@ public class ProductConditionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condition_category",
+            nullable = false,
+            length = 255)
+    private ProductConditionCategory productConditionCategory;
 
-    @Column(nullable = false, length = 255)
-    private String condition;
+    @CreationTimestamp
+    @Column(name = "created_at",
+            nullable = false,
+            updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @UpdateTimestamp
+    @Column(name = "updated_at",
+            nullable = false)
+    private LocalDateTime updatedAt;
 }
