@@ -14,6 +14,7 @@ public enum BottomCategory {
     SPORTS_SHOES("스포츠화"),
     SHOE_ACCESSORIE("신발용품"),
 
+
     // 아우터
     SHORT_PUFFY_OUTER("숏패딩/헤비 아우터"),
     MOUTON_FUR("무스탕/퍼"),
@@ -84,7 +85,17 @@ public enum BottomCategory {
     SUNGLASSES_GLASSES("선글라스/안경태"),
     ACCESSORY("액세서리"),
     WATCH("시계"),
-    BELT("벨트");
+    BELT("벨트"),
+
+    //기타
+    ETC_SHOES("신발"),
+    ETC_OUTERWEAR("아우터"),
+    ETC_TOP("상의"),
+    ETC_PANT("바지"),
+    ETC_DRESS("원피스"),
+    ETC_SKIRT("스커트"),
+    ETC_BAG("가방"),
+    ETC_FASHION_ACCESSORY("패션소품");
 
     private final String description;
 
