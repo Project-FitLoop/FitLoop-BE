@@ -6,8 +6,8 @@ import java.util.Arrays;
 @Getter
 public enum TopCategory {
     ALL("전체"),
-    MEN("남성"),
-    WOMEN("여성");
+    MALE("남성"),
+    FEMALE("여성");
 
     private final String description;
 
