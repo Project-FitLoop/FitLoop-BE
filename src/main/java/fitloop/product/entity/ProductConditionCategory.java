@@ -7,7 +7,6 @@ import java.util.Arrays;
 @Getter
 public enum ProductConditionCategory {
     UNOPENED("미개봉"),
-    USED("중고"),
     LIKE_NEW("거의 새 상품"),
     GOOD("좋음"),
     FAIR("보통"),
