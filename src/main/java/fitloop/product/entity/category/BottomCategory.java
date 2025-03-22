@@ -1,5 +1,6 @@
 package fitloop.product.entity.category;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import java.util.Arrays;
 
@@ -101,6 +102,11 @@ public enum BottomCategory {
 
     BottomCategory(String description) {
         this.description = description;
+    }
+
+    @JsonValue
+    public String getDescription() {
+        return description;
     }
 
     public static BottomCategory from(String name) {
