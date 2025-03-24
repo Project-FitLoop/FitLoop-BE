@@ -13,15 +13,14 @@ public enum ProductConditionCategory {
     POOR("나쁨");
 
     private final String description;
-
     ProductConditionCategory(String description) {
         this.description = description;
     }
 
-    public static ProductConditionCategory from(String name) {
+    public static ProductConditionCategory from(String description) {
         return Arrays.stream(ProductConditionCategory.values())
-                .filter(condition -> condition.name().equalsIgnoreCase(name))
+                .filter(condition -> condition.description.equals(description))
                 .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 상품 상태가 없습니다: " + name));
+                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 상품 상태가 없습니다: " + description));
     }
 }
