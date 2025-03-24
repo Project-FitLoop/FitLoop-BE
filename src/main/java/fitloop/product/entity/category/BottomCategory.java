@@ -109,10 +109,10 @@ public enum BottomCategory {
         return description;
     }
 
-    public static BottomCategory from(String name) {
+    public static BottomCategory from(String description) {
         return Arrays.stream(BottomCategory.values())
-                .filter(category -> category.name().equals(name))
+                .filter(category -> category.description.equals(description))
                 .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 소카테고리는 없습니다: " + name));
+                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 소카테고리는 없습니다: " + description));
     }
 }

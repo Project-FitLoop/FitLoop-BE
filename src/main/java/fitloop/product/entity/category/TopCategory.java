@@ -21,11 +21,10 @@ public enum TopCategory {
         return description;
     }
 
-    public static TopCategory from(String name) {
+    public static TopCategory from(String description) {
         return Arrays.stream(TopCategory.values())
-                .filter(category -> category.name().equals(name))
+                .filter(category -> category.description.equals(description))
                 .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 대카테고리는 없습니다: " + name));
+                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 대카테고리는 없습니다: " + description));
     }
-
 }

@@ -26,10 +26,10 @@ public enum MiddleCategory {
         return description;
     }
 
-    public static MiddleCategory from(String name) {
+    public static MiddleCategory from(String description) {
         return Arrays.stream(MiddleCategory.values())
-                .filter(category -> category.name().equals(name))
+                .filter(category -> category.description.equals(description))
                 .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 중카테고리는 없습니다: " + name));
+                .orElseThrow(() -> new IllegalArgumentException("해당 이름에 맞는 중카테고리는 없습니다: " + description));
     }
 }
