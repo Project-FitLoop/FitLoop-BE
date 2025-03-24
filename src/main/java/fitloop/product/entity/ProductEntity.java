@@ -3,8 +3,10 @@ package fitloop.product.entity;
 import fitloop.member.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "product")
@@ -35,13 +37,17 @@ public class ProductEntity {
     @Column(name = "price", nullable = false)
     private double price;
 
-    @Column(name = "descroption", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "is_free", nullable = false)
+    private boolean isFree;
+
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @Column(name = "is_active", nullable = false)
@@ -50,6 +56,14 @@ public class ProductEntity {
     @Column(name = "is_sold", nullable = false)
     private boolean isSold;
 
+    @Column(name = "include_shipping", nullable = false)
+    private boolean includeShipping;
+
     @Column(name = "like_count", nullable = false)
     private Long likeCount;
+
+    @PrePersist
+    protected void onCreate() {
+        this.likeCount = 0L;
+    }
 }
