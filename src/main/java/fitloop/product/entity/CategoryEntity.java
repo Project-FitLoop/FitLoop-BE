@@ -18,21 +18,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CategoryEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "top_category", nullable = false)
     private TopCategory topCategory;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "middle_category", nullable = false)
     private MiddleCategory middleCategory;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "bottom_category", nullable = false)
     private BottomCategory bottomCategory;
 
     @CreationTimestamp
