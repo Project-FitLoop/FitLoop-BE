@@ -89,14 +89,14 @@ public enum BottomCategory {
     BELT("벨트"),
 
     //기타
-    ETC_SHOES("신발"),
-    ETC_OUTERWEAR("아우터"),
-    ETC_TOP("상의"),
-    ETC_PANT("바지"),
-    ETC_DRESS("원피스"),
-    ETC_SKIRT("스커트"),
-    ETC_BAG("가방"),
-    ETC_FASHION_ACCESSORY("패션소품");
+    ETC_SHOES("신발_기타"),
+    ETC_OUTERWEAR("아우터_기타"),
+    ETC_TOP("상의_기타"),
+    ETC_PANT("바지_기타"),
+    ETC_DRESS("원피스_기타"),
+    ETC_SKIRT("스커트_기타"),
+    ETC_BAG("가방_기타"),
+    ETC_FASHION_ACCESSORY("패션소품_기타");
 
     private final String description;
 
