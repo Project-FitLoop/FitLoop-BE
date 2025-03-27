@@ -1,18 +1,11 @@
 package fitloop.product.service;
 
-import fitloop.member.dto.request.CustomUserDetails;
 import fitloop.member.entity.UserEntity;
 import fitloop.member.jwt.JWTUtil;
 import fitloop.member.repository.UserRepository;
 import fitloop.product.dto.request.ProductRegisterRequest;
 import fitloop.product.entity.*;
-import fitloop.product.entity.category.BottomCategory;
-import fitloop.product.entity.category.MiddleCategory;
-import fitloop.product.entity.category.TopCategory;
-import fitloop.product.repository.ProductRepository;
-import fitloop.product.repository.ProductConditionRepository;
-import fitloop.product.repository.CategoryRepository;
-import fitloop.product.repository.ProductCategoryRelationRepository;
+import fitloop.product.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -30,6 +25,7 @@ public class ProductService {
     private final ProductConditionRepository productConditionRepository;
     private final CategoryRepository categoryRepository;
     private final ProductCategoryRelationRepository productCategoryRelationRepository;
+    private final ProductImageRepository productImageRepository;
     private final JWTUtil jwtUtil;
 
     @Transactional
@@ -57,11 +53,20 @@ public class ProductService {
                 .build();
         productConditionRepository.save(productCondition);
 
+        // 상품 이미지 저장
+        List<ProductImageEntity> productImageEntities = new ArrayList<>();
+        for (String imageUrl : productRegisterRequest.getImages()) {
+            ProductImageEntity productImageEntity = ProductImageEntity.builder()
+                    .imageURL(imageUrl)
+                    .build();
+
+            productImageEntities.add(productImageEntity);
+        }
+
         // 상품 저장
         ProductEntity product = ProductEntity.builder()
                 .userEntity(userEntity)
                 .name(productRegisterRequest.getProductName())
-                .imageUrl(String.join(",", productRegisterRequest.getImages()))
                 .price(productRegisterRequest.getPrice())
                 .isFree(productRegisterRequest.isFree())
                 .description(productRegisterRequest.getProductDescription())
@@ -73,6 +78,12 @@ public class ProductService {
                 .includeShipping(productRegisterRequest.isInCludeShipping())
                 .build();
         productRepository.save(product);
+
+        // 이미지의 productEntity를 연결하고 저장
+        for (ProductImageEntity productImageEntity : productImageEntities) {
+            productImageEntity.setProductEntity(product);
+            productImageRepository.save(productImageEntity);
+        }
 
         // 상품 - 카테고리 관계 저장
         ProductCategoryRelationEntity relation = ProductCategoryRelationEntity.builder()
