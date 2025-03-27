@@ -90,9 +90,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/google", "/api/v1/login", "/api/v1/register",
                                 "/api/v1/reissue", "/api/v1/login/oauth2/code/google",
                                 "/api/v1/oauth2/authorization/google", "/api/v1/auth/**"
-                                ,"/api/v1/users/profile"
                         ).permitAll()
-                        .requestMatchers("/api/v1/products/register").authenticated()
+                        .requestMatchers("/api/v1/products/register", "/api/v1/upload", "/api/v1/users/profile").authenticated()
                         .requestMatchers("/api/v1/user").hasAuthority("MEMBER")
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -152,7 +151,9 @@ public class SecurityConfig {
     private boolean isRegisteredAPI(String requestURI) {
         return List.of(
                 "/api/v1/google", "/api/v1/login", "/api/v1/register",
-                "/api/v1/reissue", "/api/v1/auth/", "/api/v1/user", "/api/v1/admin", "/api/v1/users/profile", "/api/v1/products/register"
+                "/api/v1/reissue", "/api/v1/auth/", "/api/v1/user",
+                "/api/v1/admin", "/api/v1/users/profile", "/api/v1/products/register",
+                "/api/v1/upload"
         ).stream().anyMatch(requestURI::startsWith);
     }
 }
