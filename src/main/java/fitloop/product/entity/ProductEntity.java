@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "product")
@@ -30,9 +31,6 @@ public class ProductEntity {
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
-
-    @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
-    private String imageUrl;
 
     @Column(name = "price", nullable = false)
     private double price;
