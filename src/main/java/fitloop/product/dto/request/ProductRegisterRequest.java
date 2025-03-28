@@ -41,6 +41,9 @@ public class ProductRegisterRequest {
     @NotBlank(message = "성별 선택은 필수 입력값입니다.")
     private String gender;
 
+    @NotNull(message = "상품 태그명은 최소 1개 이상 필요합니다.")
+    private List<String> tags;
+
     public TopCategory getTopCategoryEnum() {
         return TopCategory.from(this.gender);
     }

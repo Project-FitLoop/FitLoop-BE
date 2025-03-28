@@ -26,6 +26,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductCategoryRelationRepository productCategoryRelationRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductTagRepository productTagRepository;
     private final JWTUtil jwtUtil;
 
     @Transactional
@@ -63,6 +64,16 @@ public class ProductService {
             productImageEntities.add(productImageEntity);
         }
 
+        // 상품 태그 저장
+        List<ProductTagEntity> productTagEntities = new ArrayList<>();
+        for (String tag : productRegisterRequest.getTags()) {
+            ProductTagEntity productTagEntity = ProductTagEntity.builder()
+                    .tagName(tag)
+                    .build();
+
+            productTagEntities.add(productTagEntity);
+        }
+
         // 상품 저장
         ProductEntity product = ProductEntity.builder()
                 .userEntity(userEntity)
@@ -83,6 +94,12 @@ public class ProductService {
         for (ProductImageEntity productImageEntity : productImageEntities) {
             productImageEntity.setProductEntity(product);
             productImageRepository.save(productImageEntity);
+        }
+
+        // 태그의 productEntity를 연결하고 저장
+        for (ProductTagEntity productTagEntity : productTagEntities) {
+            productTagEntity.setProductEntity(product);
+            productTagRepository.save(productTagEntity);
         }
 
         // 상품 - 카테고리 관계 저장
