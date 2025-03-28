@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 @Getter
 public enum TopCategory {
-    ALL("전체"),
+    ALL("공용"),
     MALE("남성"),
     FEMALE("여성");
 
