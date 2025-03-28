@@ -117,7 +117,7 @@
 
 FITLOOP 백엔드는 Spring Boot & Spring Security 기반으로 구축되었으며, 보안과 유지보수성을 고려한 설계를 적용하였습니다.
 
-###🔐 인증 및 권한 관리
+### 🔐 인증 및 권한 관리
 - **Spring Security & JWT 기반 인증 시스템 적용**
     - 로그인 시 Access Token과 Refresh Token을 발급
     - Access Token을 헤더에 저장하여 요청 시 포함
