@@ -21,4 +21,9 @@ public class ProductController {
             @RequestHeader("access") String accessToken) {
         return productService.createProduct(productRegisterRequest, principal, accessToken);
     }
+
+    @GetMapping("/recent")
+    public ResponseEntity<?> getRecentProducts() {
+        return ResponseEntity.ok(productService.getRecentProducts());
+    }
 }
