@@ -4,6 +4,7 @@ import fitloop.member.entity.UserEntity;
 import fitloop.member.jwt.JWTUtil;
 import fitloop.member.repository.UserRepository;
 import fitloop.product.dto.request.ProductRegisterRequest;
+import fitloop.product.dto.response.ProductRecentResponse;
 import fitloop.product.entity.*;
 import fitloop.product.repository.*;
 import jakarta.transaction.Transactional;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -112,5 +114,13 @@ public class ProductService {
         productCategoryRelationRepository.save(relation);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 등록 성공"));
+    }
+
+    public List<ProductRecentResponse> getRecentProducts() {
+        List<ProductEntity> products = productRepository.findAllByIsActiveTrueOrderByCreatedAtDesc();
+
+        return products.stream()
+                .map(ProductRecentResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 }
