@@ -9,6 +9,10 @@ import fitloop.product.entity.*;
 import fitloop.product.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -116,11 +120,39 @@ public class ProductService {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 등록 성공"));
     }
 
-    public List<ProductRecentResponse> getRecentProducts() {
-        List<ProductEntity> products = productRepository.findAllByIsActiveTrueOrderByCreatedAtDesc();
+    public List<ProductRecentResponse> getRecentProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ProductEntity> productPage = productRepository.findAllByIsActiveTrue(pageable);
+
+        List<ProductEntity> products = productPage.getContent();
+        List<Long> productIds = products.stream().map(ProductEntity::getId).toList();
+
+        List<ProductImageEntity> allImages = productImageRepository.findByProductEntityIdIn(productIds);
+        Map<Long, List<String>> imageMap = allImages.stream()
+                .collect(Collectors.groupingBy(
+                        img -> img.getProductEntity().getId(),
+                        Collectors.mapping(ProductImageEntity::getImageURL, Collectors.toList())
+                ));
+
+        List<ProductTagEntity> allTags = productTagRepository.findByProductEntityIdIn(productIds);
+        Map<Long, List<String>> tagMap = allTags.stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getProductEntity().getId(),
+                        Collectors.mapping(ProductTagEntity::getTagName, Collectors.toList())
+                ));
 
         return products.stream()
-                .map(ProductRecentResponse::fromEntity)
-                .collect(Collectors.toList());
+                .map(product -> ProductRecentResponse.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .isFree(product.isFree())
+                        .includeShipping(product.isIncludeShipping())
+                        .likeCount(product.getLikeCount())
+                        .createdAt(product.getCreatedAt())
+                        .imageUrls(imageMap.getOrDefault(product.getId(), List.of()))
+                        .tags(tagMap.getOrDefault(product.getId(), List.of()))
+                        .build())
+                .toList();
     }
 }
