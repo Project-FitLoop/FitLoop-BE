@@ -11,6 +11,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -35,13 +37,17 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
     private final UserRepository userRepository;
+    private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 변환용
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository, UserRepository userRepository) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil,
+                       RefreshRepository refreshRepository, UserRepository userRepository,
+                       RedisTemplate<String, String> redisTemplate) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshRepository = refreshRepository;
         this.userRepository = userRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -49,18 +55,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         LoginRequest loginRequest;
 
         try {
-            //JSON 요청 바디 읽기
             String messageBody = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
-
-            //JSON -> LoginRequest 변환
             loginRequest = objectMapper.readValue(messageBody, LoginRequest.class);
-
         } catch (IOException e) {
             try {
                 handleErrorResponse(response, AuthErrorCode.INCORRECT_CONSTRUCT_HEADER);
                 return null;
             } catch (IOException ex) {
-                //만약 handleErrorResponse 내부에서 문제가 생기면 예외 발생
                 throw new RuntimeException(ex);
             }
         }
@@ -80,16 +81,18 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        //JWT 생성
+        // JWT 생성
         String accessToken = jwtUtil.createJwt("access", username, role, 600000L);
         String refreshToken = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
-        //Refresh 토큰 저장
+        // AccessToken Redis 저장 (TTL 10분)
+        redisTemplate.opsForValue().set("ACCESS:" + accessToken, username, 10, TimeUnit.MINUTES);
+
+        // RefreshToken DB 저장
         saveRefreshToken(username, refreshToken, 86400000L);
 
-        //유저 정보 조회 (personal_info 가져오기)
+        // 유저 정보 조회
         Optional<UserEntity> userEntityOptional = userRepository.findByUsername(username);
-        System.out.println("유저 네임: " + userEntityOptional);
         boolean personalInfo = userEntityOptional.map(user -> Boolean.TRUE.equals(user.getPersonalInfo())).orElse(false);
 
         response.setHeader("access", accessToken);
@@ -98,7 +101,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpStatus.OK.value());
 
-        //JSON 응답
         response.getWriter().write(objectMapper.writeValueAsString(Map.of(
                 "message", "로그인이 성공하였습니다.",
                 "personal_info", personalInfo
@@ -119,8 +121,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setStatus(errorCode.getStatus().value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-
-        // JSON 응답 반환
         response.getWriter().write(objectMapper.writeValueAsString(Map.of(
                 "error", errorCode.name(),
                 "message", errorCode.getMessage()

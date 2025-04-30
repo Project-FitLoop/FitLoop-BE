@@ -9,6 +9,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -17,91 +18,90 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public CustomLogoutFilter(JWTUtil jwtUtil, RefreshRepository refreshRepository) {
-
+    public CustomLogoutFilter(JWTUtil jwtUtil, RefreshRepository refreshRepository, RedisTemplate<String, String> redisTemplate) {
         this.jwtUtil = jwtUtil;
         this.refreshRepository = refreshRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
         doFilter((HttpServletRequest) request, (HttpServletResponse) response, chain);
     }
 
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        //로그아웃인지 아닌지 확인
+        // 로그아웃 API가 아니면 그냥 넘김
         String requestUri = request.getRequestURI();
         if (!requestUri.matches("^\\/api/v1/logout$")) {
-
             filterChain.doFilter(request, response);
             return;
         }
+
         String requestMethod = request.getMethod();
         if (!requestMethod.equals("POST")) {
-
             filterChain.doFilter(request, response);
             return;
         }
 
-        //get refresh token
+        // Refresh 토큰 가져오기
         String refresh = null;
         Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-
-            if (cookie.getName().equals("refresh")) {
-
-                refresh = cookie.getValue();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("refresh")) {
+                    refresh = cookie.getValue();
+                }
             }
         }
 
-        //refresh null check
+        // Refresh 토큰 null 체크
         if (refresh == null) {
-
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        //expired check
+        // Refresh 토큰 만료 체크
         try {
             jwtUtil.isExpired(refresh);
         } catch (ExpiredJwtException e) {
-
-            //response status code
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
+        // Refresh 토큰이 맞는지 카테고리 체크
         String category = jwtUtil.getCategory(refresh);
-        if (!category.equals("refresh")) {
-
-            //response status code
+        if (!"refresh".equals(category)) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        //DB에 저장되어 있는지 확인
+        // DB에 Refresh 토큰 존재 여부 확인
         Boolean isExist = refreshRepository.existsByRefresh(refresh);
         if (!isExist) {
-
-            //response status code
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        //로그아웃 진행
-        //Refresh 토큰 DB에서 제거
+        // ===== 실제 로그아웃 처리 시작 =====
+
+        // Refresh 토큰 DB에서 삭제
         refreshRepository.deleteByRefresh(refresh);
 
-        //Refresh 토큰 Cookie 값 0
+        // Access 토큰 Redis에서 삭제
+        String accessToken = request.getHeader("access");
+        if (accessToken != null) {
+            redisTemplate.delete("ACCESS:" + accessToken);
+        }
+
+        // Refresh 토큰 쿠키 제거
         Cookie cookie = new Cookie("refresh", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
-
         response.addCookie(cookie);
+
         response.setStatus(HttpServletResponse.SC_OK);
     }
 }

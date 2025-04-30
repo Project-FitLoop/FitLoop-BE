@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,10 +23,12 @@ import java.util.Map;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public JWTFilter(JWTUtil jwtUtil) {
+    public JWTFilter(JWTUtil jwtUtil, RedisTemplate<String, String> redisTemplate) {
         this.jwtUtil = jwtUtil;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -37,7 +40,16 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰이 없으면 그냥 다음 필터로 넘김
         if (accessToken != null) {
             try {
+                // 만료 체크
                 jwtUtil.isExpired(accessToken);
+
+                // Redis에 AccessToken 존재 여부 확인
+                String redisKey = "ACCESS:" + accessToken;
+                String redisUsername = redisTemplate.opsForValue().get(redisKey);
+                if (redisUsername == null) {
+                    setErrorResponse(response, AuthErrorCode.EXPIRED_TOKEN);
+                    return;
+                }
 
                 // access 토큰인지 체크
                 String category = jwtUtil.getCategory(accessToken);

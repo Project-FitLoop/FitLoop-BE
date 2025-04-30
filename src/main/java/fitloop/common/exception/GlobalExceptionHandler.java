@@ -3,6 +3,7 @@ package fitloop.common.exception;
 
 import fitloop.common.exception.errorcode.CommonErrorCode;
 import fitloop.common.exception.response.ErrorResponse;
+import fitloop.common.exception.response.ValidErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -28,10 +30,20 @@ public class GlobalExceptionHandler {
     // 400 Bad Request (잘못된 입력값)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of(CommonErrorCode.INVALID_INPUT, errors.toString()));
+        List<ValidErrorResponse> errorList = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(ValidErrorResponse::from)
+                .toList();
+
+        ErrorResponse response = ErrorResponse.builder()
+                .status(CommonErrorCode.INVALID_INPUT.getStatus().value())
+                .message(CommonErrorCode.INVALID_INPUT.getMessage())
+                .name(CommonErrorCode.INVALID_INPUT.name())
+                .errors(errorList)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     // 405 Method Not Allowed (잘못된 HTTP 메서드 요청)
