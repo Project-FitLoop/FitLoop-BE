@@ -78,7 +78,8 @@ public class ReissueController {
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
         // AccessToken Redis에 저장 (10분 TTL)
-        redisTemplate.opsForValue().set("ACCESS:" + newAccess, username, 10, TimeUnit.MINUTES);
+        String redisKey = "auth:access:" + newAccess;
+        redisTemplate.opsForValue().set(redisKey, username, 10, TimeUnit.MINUTES);
 
         // 기존 Refresh 삭제, 새로 저장
         refreshRepository.deleteByRefresh(refresh);
