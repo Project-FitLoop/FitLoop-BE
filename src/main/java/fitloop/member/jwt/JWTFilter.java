@@ -40,27 +40,31 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰이 없으면 그냥 다음 필터로 넘김
         if (accessToken != null) {
             try {
-                // 만료 체크
                 jwtUtil.isExpired(accessToken);
 
-                // Redis에 AccessToken 존재 여부 확인
-                String redisKey = "ACCESS:" + accessToken;
-                String redisUsername = redisTemplate.opsForValue().get(redisKey);
-                if (redisUsername == null) {
+                String username = jwtUtil.getUsername(accessToken);
+                String redisKey = "auth:access:" + username;
+                String redisValue = redisTemplate.opsForValue().get(redisKey);
+
+                if (redisValue == null) {
                     setErrorResponse(response, AuthErrorCode.EXPIRED_TOKEN);
                     return;
                 }
 
-                // access 토큰인지 체크
+                // value가 JSON 형태일 경우 token 일치 여부 확인
+                Map<String, String> valueMap = objectMapper.readValue(redisValue, Map.class);
+                if (!accessToken.equals(valueMap.get("token"))) {
+                    setErrorResponse(response, AuthErrorCode.EXPIRED_TOKEN);
+                    return;
+                }
+
                 String category = jwtUtil.getCategory(accessToken);
                 if (!"access".equals(category)) {
                     setErrorResponse(response, AuthErrorCode.NOT_WOOHAENGSHI_TOKEN);
                     return;
                 }
 
-                // 토큰으로부터 사용자 정보 추출 및 인증 객체 생성
-                String username = jwtUtil.getUsername(accessToken);
-                String roleString = jwtUtil.getRole(accessToken);
+                String roleString = valueMap.get("role");
                 Role role = Role.valueOf(roleString);
 
                 UserEntity userEntity = new UserEntity();

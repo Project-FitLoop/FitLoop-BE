@@ -1,7 +1,9 @@
 package fitloop.member.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fitloop.member.repository.RefreshRepository;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -13,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class CustomLogoutFilter extends GenericFilterBean {
 
@@ -85,15 +88,28 @@ public class CustomLogoutFilter extends GenericFilterBean {
             return;
         }
 
-        // ===== 실제 로그아웃 처리 시작 =====
-
         // Refresh 토큰 DB에서 삭제
         refreshRepository.deleteByRefresh(refresh);
 
         // Access 토큰 Redis에서 삭제
         String accessToken = request.getHeader("access");
         if (accessToken != null) {
-            redisTemplate.delete("ACCESS:" + accessToken);
+            try {
+                String username = jwtUtil.getUsername(accessToken);
+                String redisKey = "auth:access:" + username;
+                String redisValue = redisTemplate.opsForValue().get(redisKey);
+
+                if (redisValue != null) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map<String, String> tokenInfo = objectMapper.readValue(redisValue, Map.class);
+
+                    String storedToken = tokenInfo.get("token");
+                    if (accessToken.equals(storedToken)) {
+                        redisTemplate.delete(redisKey);
+                    }
+                }
+            } catch (JwtException e) {
+            }
         }
 
         // Refresh 토큰 쿠키 제거

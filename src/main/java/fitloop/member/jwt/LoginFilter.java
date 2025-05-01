@@ -86,7 +86,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String refreshToken = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
         // AccessToken Redis 저장 (TTL 10분)
-        redisTemplate.opsForValue().set("ACCESS:" + accessToken, username, 10, TimeUnit.MINUTES);
+        String redisKey = "auth:access:" + username;
+        String redisValue = objectMapper.writeValueAsString(Map.of(
+                "role", role,
+                "token", accessToken
+        ));
+        redisTemplate.opsForValue().set(redisKey, redisValue, 10, TimeUnit.MINUTES);
 
         // RefreshToken DB 저장
         saveRefreshToken(username, refreshToken, 86400000L);
