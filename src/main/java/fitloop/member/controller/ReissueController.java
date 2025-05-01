@@ -1,5 +1,6 @@
 package fitloop.member.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fitloop.member.entity.RefreshEntity;
 import fitloop.member.jwt.JWTUtil;
 import fitloop.member.repository.RefreshRepository;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Controller
@@ -78,8 +80,16 @@ public class ReissueController {
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
         // AccessToken Redis에 저장 (10분 TTL)
-        String redisKey = "auth:access:" + newAccess;
-        redisTemplate.opsForValue().set(redisKey, username, 10, TimeUnit.MINUTES);
+        try {
+            String redisKey = "auth:access:" + username;
+            String redisValue = new ObjectMapper().writeValueAsString(Map.of(
+                    "role", role,
+                    "token", newAccess
+            ));
+            redisTemplate.opsForValue().set(redisKey, redisValue, 10, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            return new ResponseEntity<>("redis error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         // 기존 Refresh 삭제, 새로 저장
         refreshRepository.deleteByRefresh(refresh);
