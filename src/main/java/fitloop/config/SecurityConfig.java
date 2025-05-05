@@ -11,6 +11,7 @@ import fitloop.member.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -94,6 +95,7 @@ public class SecurityConfig {
                                 "/api/v1/reissue", "/api/v1/login/oauth2/code/google",
                                 "/api/v1/oauth2/authorization/google", "/api/v1/auth/**", "/api/v1/products/recent"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/products/*").permitAll()
                         .requestMatchers("/api/v1/products/register", "/api/v1/upload", "/api/v1/users/profile").authenticated()
                         .requestMatchers("/api/v1/user").hasAuthority("MEMBER")
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN")
