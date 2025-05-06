@@ -1,16 +1,16 @@
 
 -- 사용자
 INSERT INTO user (birth_date, personal_info, created_at, updated_at, email, full_name, password, phone_number, provider, provider_id, username, membership, role) VALUES
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test1@example.com', 'sunghui1', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser1', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test2@example.com', 'sunghui2', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser2', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test3@example.com', 'sunghui3', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser3', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test4@example.com', 'sunghui4', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser4', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test5@example.com', 'sunghui5', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser5', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test6@example.com', 'jieun1', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser6', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test7@example.com', 'jieun2', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser7', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test8@example.com', 'jieun3', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser8', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test9@example.com', 'jieun4', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser9', 'SEED', 'MEMBER'),
-  ('2000-01-31', 0, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test10@example.com', 'jieun5', '$2a$10$i8RIu3MWsNOo6MdQkHRRZuSw7FicAraNhxe3BbZeswtdffRxW57ai', NULL, NULL, NULL, 'testuser10', 'SEED', 'MEMBER');
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test1@example.com', 'sunghui1', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser1', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test2@example.com', 'sunghui2', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser2', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test3@example.com', 'sunghui3', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser3', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test4@example.com', 'sunghui4', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser4', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test5@example.com', 'sunghui5', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser5', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test6@example.com', 'jieun1', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser6', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test7@example.com', 'jieun2', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser7', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test8@example.com', 'jieun3', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser8', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test9@example.com', 'jieun4', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser9', 'SEED', 'MEMBER'),
+  ('2000-01-31', 1, '2025-04-05 07:00:30', '2025-04-05 07:00:30', 'test10@example.com', 'jieun5', '$2a$10$r7jHY0.XZ0rpcKDYyS7vD.EIW7oh3y0qf4cJ2uJmznWD/PXDpEv.u', NULL, NULL, NULL, 'testuser10', 'SEED', 'MEMBER');
 
 -- 카테고리
 INSERT INTO category (created_at, id, updated_at, bottom_category, middle_category, top_category)
