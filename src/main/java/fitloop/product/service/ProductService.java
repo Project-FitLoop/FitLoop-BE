@@ -203,6 +203,7 @@ public class ProductService {
                 .free(product.isFree())
                 .description(product.getDescription())
                 .category(categoryDescription)
+                .profileImages(profile.getProfileImage())
                 .sellerName(profile.getNickname())
                 .rating(4) // TODO: 리뷰 데이터로 연동 시 수정
                 .reviewCount(13) // TODO: 리뷰 개수 연동 시 수정
