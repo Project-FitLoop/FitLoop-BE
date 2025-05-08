@@ -21,6 +21,7 @@ public class ProductDetailResponse {
     private String category;
     private String sellerName;
     private int rating;
+    private String profileImages;
     private int reviewCount;
     private String condition;
 }
