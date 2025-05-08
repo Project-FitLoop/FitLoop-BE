@@ -1,9 +1,12 @@
 package fitloop.product.service;
 
+import fitloop.member.entity.ProfileEntity;
 import fitloop.member.entity.UserEntity;
 import fitloop.member.jwt.JWTUtil;
+import fitloop.member.repository.ProfileRepository;
 import fitloop.member.repository.UserRepository;
 import fitloop.product.dto.request.ProductRegisterRequest;
+import fitloop.product.dto.response.ProductDetailResponse;
 import fitloop.product.dto.response.ProductRecentResponse;
 import fitloop.product.entity.*;
 import fitloop.product.repository.*;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +38,8 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final ProductTagRepository productTagRepository;
     private final JWTUtil jwtUtil;
+    private final ProfileRepository profileRepository;
+
 
     @Transactional
     public ResponseEntity<?> createProduct(ProductRegisterRequest productRegisterRequest, Object principal, String accessToken) {
@@ -154,5 +160,57 @@ public class ProductService {
                         .tags(tagMap.getOrDefault(product.getId(), List.of()))
                         .build())
                 .toList();
+    }
+
+    public ProductDetailResponse getProductDetail(Long productId) {
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+
+        // 1. 이미지 URL 리스트
+        List<String> imageUrls = productImageRepository.findAllByProductEntity(product)
+                .stream()
+                .map(ProductImageEntity::getImageURL)
+                .toList();
+
+        // 2. 태그 리스트
+        List<String> tags = productTagRepository.findAllByProductEntity(product)
+                .stream()
+                .map(ProductTagEntity::getTagName)
+                .toList();
+
+        // 3. 카테고리 정보 (Top > Middle > Bottom)
+        ProductCategoryRelationEntity relation = productCategoryRelationRepository.findByProductEntity(product)
+                .orElseThrow(() -> new IllegalArgumentException("카테고리 연관 정보를 찾을 수 없습니다."));
+        CategoryEntity category = relation.getCategoryEntity();
+        String categoryDescription = category.getTopCategory().getDescription() + " > "
+                + category.getMiddleCategory().getDescription() + " > "
+                + category.getBottomCategory().getDescription();
+
+        // 4. 판매자 닉네임
+        ProfileEntity profile = profileRepository.findByUserId(product.getUserEntity())
+                .orElseThrow(() -> new IllegalArgumentException("프로필 정보가 없습니다."));
+
+        // 5. 최종 응답 빌드
+        return ProductDetailResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .price(product.getPrice())
+                .includeShipping(product.isIncludeShipping())
+                .likeCount(product.getLikeCount())
+                .createdAt(product.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                .imageUrls(imageUrls)
+                .tags(tags)
+                .free(product.isFree())
+                .description(product.getDescription())
+                .category(categoryDescription)
+                .profileImages(profile.getProfileImage())
+                .sellerName(profile.getNickname())
+                .rating(4) // TODO: 리뷰 데이터로 연동 시 수정
+                .reviewCount(13) // TODO: 리뷰 개수 연동 시 수정
+                .condition(product.getProductConditionEntity()
+                                .getProductConditionCategory()
+                                .getDescription()
+                )
+                .build();
     }
 }

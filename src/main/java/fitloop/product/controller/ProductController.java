@@ -1,6 +1,7 @@
 package fitloop.product.controller;
 
 import fitloop.product.dto.request.ProductRegisterRequest;
+import fitloop.product.dto.response.ProductDetailResponse;
 import fitloop.product.dto.response.ProductRecentResponse;
 import fitloop.product.service.ProductService;
 import jakarta.validation.Valid;
@@ -9,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -31,5 +34,10 @@ public class ProductController {
             @RequestParam(defaultValue = "9") int size
     ) {
         return ResponseEntity.ok(productService.getRecentProducts(page, size));
+    }
+
+    @GetMapping("/{id}")
+    public ProductDetailResponse getProductDetail(@PathVariable Long id) {
+        return productService.getProductDetail(id);
     }
 }
