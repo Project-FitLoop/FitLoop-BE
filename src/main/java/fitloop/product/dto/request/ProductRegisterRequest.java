@@ -45,15 +45,15 @@ public class ProductRegisterRequest {
     private List<String> tags;
 
     public TopCategory getTopCategoryEnum() {
-        return TopCategory.from(this.gender);
+        return TopCategory.fromDescription(this.gender);
     }
 
     public MiddleCategory getMiddleCategoryEnum() {
-        return MiddleCategory.from(this.category);
+        return MiddleCategory.fromDescription(this.category);
     }
 
     public BottomCategory getBottomCategoryEnum() {
-        return BottomCategory.from(this.subCategory);
+        return BottomCategory.fromDescription(this.subCategory);
     }
 
     public ProductConditionCategory getProductConditionEnum() {
