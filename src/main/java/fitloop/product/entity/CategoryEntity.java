@@ -23,15 +23,15 @@ public class CategoryEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "top_category", nullable = false)
+    @Column(name = "top_category", columnDefinition = "VARCHAR(50)", nullable = false)
     private TopCategory topCategory;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "middle_category", nullable = false)
+    @Column(name = "middle_category", columnDefinition = "VARCHAR(50)", nullable = false)
     private MiddleCategory middleCategory;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "bottom_category", nullable = false)
+    @Column(name = "bottom_category", columnDefinition = "VARCHAR(50)", nullable = false)
     private BottomCategory bottomCategory;
 
     @CreationTimestamp
