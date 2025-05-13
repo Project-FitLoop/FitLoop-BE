@@ -257,17 +257,21 @@ public class ProductService {
                 .toList();
     }
 
-    public List<ProductResponse> getCategoryProducts(int page, int size, int categoryCode, String gender) {
+    public List<ProductResponse> getCategoryProducts(int page, int size, int categoryCode, String topCategory) {
 
         String codeStr = String.format("%06d", categoryCode);
-        TopCategory top = TopCategory.fromGender(gender);
+        TopCategory top = TopCategory.fromGender(topCategory.toUpperCase());
         MiddleCategory middle = MiddleCategory.fromCode(codeStr.substring(0, 3));
         BottomCategory bottom = BottomCategory.fromCode(codeStr.substring(3));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "likeCount"));
-        List<ProductEntity> products = productRepository
-                .findByCategory(top, middle, bottom, pageable)
-                .getContent();
+
+        List<ProductEntity> products;
+        if ("000".equals(bottom.getCode())) {
+            products = productRepository.findByTopAndMiddle(top, middle, pageable).getContent();
+        } else {
+            products = productRepository.findByTopMiddleBottom(top, middle, bottom, pageable).getContent();
+        }
 
         List<Long> productIds = products.stream()
                 .map(ProductEntity::getId)
