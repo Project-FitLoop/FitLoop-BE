@@ -99,9 +99,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/google", "/api/v1/login", "/api/v1/register",
+                                "/api/v1/google", "/api/v1/login", "/api/v1/register", "/api/v1/kafka/**",
                                 "/api/v1/reissue", "/api/v1/login/oauth2/code/google",
-                                "/api/v1/oauth2/authorization/google", "/api/v1/auth/**", "/api/v1/products/recent"
+                                "/api/v1/oauth2/authorization/google", "/api/v1/auth/**", "/api/v1/products/recent",
+                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/*").permitAll()
                         .requestMatchers("/api/v1/products/register", "/api/v1/upload", "/api/v1/users/profile").authenticated()
