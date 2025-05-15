@@ -167,6 +167,69 @@ FITLOOP 백엔드는 Spring Boot & Spring Security 기반으로 구축되었으�
 - 식별자와 여는 소괄호 ()사이에는 공백을 삽입하지 않습니다.
   생성자와 메소드의 선언, 호출, 어노테이션 선언 뒤에 쓰이는 소괄호가 이에 해당합니다.
 
+
+<br>
+<br>
+<br>
+
+## 📚 API 명세 (Swagger 기반)
+
+FITLOOP 프로젝트는 Swagger(OpenAPI 3.0)를 활용하여 REST API 명세를 자동화하였으며, SwaggerHub를 통해 팀원들과 API 문서를 공유하고 관리하고 있습니다.
+
+### 🔗 API 문서 보기
+
+- [SwaggerHub 문서 보기](https://app.swaggerhub.com/apis/none-f10-fb1/fitloop-api/1.0.0)
+- 
+- 또는 `fitloop-api.yaml` 파일을 Postman 또는 Swagger Editor에서 불러와 사용 가능
+
+---
+
+### 🧪 테스트 방법
+
+#### Swagger UI (로컬 테스트)
+- 주소: `http://localhost:8080/swagger-ui/index.html`
+- `Try it out` 버튼 클릭 후 실제 API 호출 가능 (JWT access 헤더 필요 시 수동 입력)
+
+#### Postman 테스트
+1. `fitloop-api.yaml` 파일을 다운로드
+2. Postman → `Import` → `File` → YAML 파일 선택
+3. 각 API 요청 실행 (`access` 헤더 등 필요 시 수동 입력)
+
+---
+
+### 📌 주요 API 목록
+
+| Method | Endpoint                          | 설명                   |
+|--------|------------------------------------|------------------------|
+| POST   | `/api/v1/register`                | 회원가입               |
+| POST   | `/api/v1/users/profile`           | 사용자 프로필 등록     |
+| GET    | `/api/v1/user`                    | 유저 정보 조회         |
+| POST   | `/api/v1/products/register`       | 상품 등록              |
+| GET    | `/api/v1/products/{id}`           | 상품 상세 조회         |
+| GET    | `/api/v1/products/recent`         | 최근 상품 목록 조회    |
+| POST   | `/api/v1/cart/add`                | 장바구니 담기          |
+| GET    | `/api/v1/cart`                    | 장바구니 조회          |
+| DELETE | `/api/v1/cart/remove`             | 장바구니 항목 삭제     |
+| DELETE | `/api/v1/cart/clear`              | 장바구니 전체 비우기   |
+| POST   | `/api/v1/reissue`                 | JWT 토큰 재발급        |
+| GET    | `/api/v1/auth/{provider}`         | 소셜 로그인 (Google 등)|
+| GET    | `/health-check`                   | 서버 상태 확인         |
+
+---
+
+### 🧾 요청 예시
+
+#### 회원가입
+```json
+{
+  "username": "testuser",
+  "password": "P@ssw0rd!",
+  "name": "홍길동",
+  "birthday": "1995-05-15",
+  "email": "test@example.com"
+} 
+```
+
 <br>
 <br>
 <br>
