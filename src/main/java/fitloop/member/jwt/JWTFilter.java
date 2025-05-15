@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,10 +23,12 @@ import java.util.Map;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public JWTFilter(JWTUtil jwtUtil) {
+    public JWTFilter(JWTUtil jwtUtil, RedisTemplate<String, String> redisTemplate) {
         this.jwtUtil = jwtUtil;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -39,16 +42,29 @@ public class JWTFilter extends OncePerRequestFilter {
             try {
                 jwtUtil.isExpired(accessToken);
 
-                // access 토큰인지 체크
+                String username = jwtUtil.getUsername(accessToken);
+                String redisKey = "auth:access:" + username;
+                String redisValue = redisTemplate.opsForValue().get(redisKey);
+
+                if (redisValue == null) {
+                    setErrorResponse(response, AuthErrorCode.EXPIRED_TOKEN);
+                    return;
+                }
+
+                // value가 JSON 형태일 경우 token 일치 여부 확인
+                Map<String, String> valueMap = objectMapper.readValue(redisValue, Map.class);
+                if (!accessToken.equals(valueMap.get("token"))) {
+                    setErrorResponse(response, AuthErrorCode.EXPIRED_TOKEN);
+                    return;
+                }
+
                 String category = jwtUtil.getCategory(accessToken);
                 if (!"access".equals(category)) {
                     setErrorResponse(response, AuthErrorCode.NOT_WOOHAENGSHI_TOKEN);
                     return;
                 }
 
-                // 토큰으로부터 사용자 정보 추출 및 인증 객체 생성
-                String username = jwtUtil.getUsername(accessToken);
-                String roleString = jwtUtil.getRole(accessToken);
+                String roleString = valueMap.get("role");
                 Role role = Role.valueOf(roleString);
 
                 UserEntity userEntity = new UserEntity();

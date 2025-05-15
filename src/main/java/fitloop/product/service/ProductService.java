@@ -1,21 +1,35 @@
 package fitloop.product.service;
 
+import fitloop.member.entity.ProfileEntity;
 import fitloop.member.entity.UserEntity;
 import fitloop.member.jwt.JWTUtil;
+import fitloop.member.repository.ProfileRepository;
 import fitloop.member.repository.UserRepository;
 import fitloop.product.dto.request.ProductRegisterRequest;
+import fitloop.product.dto.response.ProductDetailResponse;
+import fitloop.product.dto.response.ProductResponse;
 import fitloop.product.entity.*;
+import fitloop.product.entity.category.BottomCategory;
+import fitloop.product.entity.category.MiddleCategory;
+import fitloop.product.entity.category.TopCategory;
 import fitloop.product.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +42,7 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final ProductTagRepository productTagRepository;
     private final JWTUtil jwtUtil;
+    private final ProfileRepository profileRepository;
 
     @Transactional
     public ResponseEntity<?> createProduct(ProductRegisterRequest productRegisterRequest, Object principal, String accessToken) {
@@ -112,5 +127,180 @@ public class ProductService {
         productCategoryRelationRepository.save(relation);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 등록 성공"));
+    }
+
+    public List<ProductResponse> getRecentProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ProductEntity> productPage = productRepository.findAllByIsActiveTrue(pageable);
+
+        List<ProductEntity> products = productPage.getContent();
+        List<Long> productIds = products.stream().map(ProductEntity::getId).toList();
+
+        List<ProductImageEntity> allImages = productImageRepository.findByProductEntityIdIn(productIds);
+        Map<Long, List<String>> imageMap = allImages.stream()
+                .collect(Collectors.groupingBy(
+                        img -> img.getProductEntity().getId(),
+                        Collectors.mapping(ProductImageEntity::getImageURL, Collectors.toList())
+                ));
+
+        List<ProductTagEntity> allTags = productTagRepository.findByProductEntityIdIn(productIds);
+        Map<Long, List<String>> tagMap = allTags.stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getProductEntity().getId(),
+                        Collectors.mapping(ProductTagEntity::getTagName, Collectors.toList())
+                ));
+
+        return products.stream()
+                .map(product -> ProductResponse.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .isFree(product.isFree())
+                        .includeShipping(product.isIncludeShipping())
+                        .createdAt(product.getCreatedAt())
+                        .imageUrls(imageMap.getOrDefault(product.getId(), List.of()))
+                        .tags(tagMap.getOrDefault(product.getId(), List.of()))
+                        .build())
+                .toList();
+    }
+
+    public ProductDetailResponse getProductDetail(Long productId) {
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+
+        // 1. 이미지 URL 리스트
+        List<String> imageUrls = productImageRepository.findAllByProductEntity(product)
+                .stream()
+                .map(ProductImageEntity::getImageURL)
+                .toList();
+
+        // 2. 태그 리스트
+        List<String> tags = productTagRepository.findAllByProductEntity(product)
+                .stream()
+                .map(ProductTagEntity::getTagName)
+                .toList();
+
+        // 3. 카테고리 정보 (Top > Middle > Bottom)
+        ProductCategoryRelationEntity relation = productCategoryRelationRepository.findByProductEntity(product)
+                .orElseThrow(() -> new IllegalArgumentException("카테고리 연관 정보를 찾을 수 없습니다."));
+        CategoryEntity category = relation.getCategoryEntity();
+        String categoryDescription = category.getTopCategory().getDescription() + " > "
+                + category.getMiddleCategory().getDescription() + " > "
+                + category.getBottomCategory().getDescription();
+
+        // 4. 판매자 닉네임
+        ProfileEntity profile = profileRepository.findByUserId(product.getUserEntity())
+                .orElseThrow(() -> new IllegalArgumentException("프로필 정보가 없습니다."));
+
+        // 5. 최종 응답 빌드
+        return ProductDetailResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .price(product.getPrice())
+                .includeShipping(product.isIncludeShipping())
+                .likeCount(product.getLikeCount())
+                .createdAt(product.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                .imageUrls(imageUrls)
+                .tags(tags)
+                .free(product.isFree())
+                .description(product.getDescription())
+                .category(categoryDescription)
+                .profileImages(profile.getProfileImage())
+                .sellerName(profile.getNickname())
+                .rating(4) // TODO: 리뷰 데이터로 연동 시 수정
+                .reviewCount(13) // TODO: 리뷰 개수 연동 시 수정
+                .condition(product.getProductConditionEntity()
+                                .getProductConditionCategory()
+                                .getDescription()
+                )
+                .build();
+    }
+
+    public List<ProductResponse> getPopularProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "likeCount"));
+        Page<ProductEntity> productPage = productRepository.findAllByIsActiveTrue(pageable);
+
+        List<ProductEntity> products = productPage.getContent();
+        List<Long> productIds = products.stream().map(ProductEntity::getId).toList();
+
+        List<ProductImageEntity> allImages = productImageRepository.findByProductEntityIdIn(productIds);
+        Map<Long, List<String>> imageMap = allImages.stream()
+                .collect(Collectors.groupingBy(
+                        img -> img.getProductEntity().getId(),
+                        Collectors.mapping(ProductImageEntity::getImageURL, Collectors.toList())
+                ));
+
+        List<ProductTagEntity> allTags = productTagRepository.findByProductEntityIdIn(productIds);
+        Map<Long, List<String>> tagMap = allTags.stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getProductEntity().getId(),
+                        Collectors.mapping(ProductTagEntity::getTagName, Collectors.toList())
+                ));
+
+        // 순위 매기기 (페이지 내에서 1부터 시작)
+        return IntStream.range(0, products.size())
+                .mapToObj(i -> {
+                    ProductEntity product = products.get(i);
+                    return ProductResponse.builder()
+                            .id(product.getId())
+                            .name(product.getName())
+                            .price(product.getPrice())
+                            .isFree(product.isFree())
+                            .includeShipping(product.isIncludeShipping())
+                            .likeCount(product.getLikeCount())
+                            .createdAt(product.getCreatedAt())
+                            .imageUrls(imageMap.getOrDefault(product.getId(), List.of()))
+                            .tags(tagMap.getOrDefault(product.getId(), List.of()))
+                            .rank(page * size + i + 1)
+                            .build();
+                })
+                .toList();
+    }
+
+    public List<ProductResponse> getCategoryProducts(int page, int size, int categoryCode, String topCategory) {
+
+        String codeStr = String.format("%06d", categoryCode);
+        TopCategory top = TopCategory.fromGender(topCategory.toUpperCase());
+        MiddleCategory middle = MiddleCategory.fromCode(codeStr.substring(0, 3));
+        BottomCategory bottom = BottomCategory.fromCode(codeStr.substring(3));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "likeCount"));
+
+        List<ProductEntity> products;
+        if ("000".equals(bottom.getCode())) {
+            products = productRepository.findByTopAndMiddle(top, middle, pageable).getContent();
+        } else {
+            products = productRepository.findByTopMiddleBottom(top, middle, bottom, pageable).getContent();
+        }
+
+        List<Long> productIds = products.stream()
+                .map(ProductEntity::getId)
+                .toList();
+
+        Map<Long, List<String>> imageMap = productImageRepository.findByProductEntityIdIn(productIds).stream()
+                .collect(Collectors.groupingBy(
+                        img -> img.getProductEntity().getId(),
+                        Collectors.mapping(ProductImageEntity::getImageURL, Collectors.toList())
+                ));
+
+        Map<Long, List<String>> tagMap = productTagRepository.findByProductEntityIdIn(productIds).stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getProductEntity().getId(),
+                        Collectors.mapping(ProductTagEntity::getTagName, Collectors.toList())
+                ));
+
+        return products.stream()
+                .map(product -> ProductResponse.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .isFree(product.isFree())
+                        .includeShipping(product.isIncludeShipping())
+                        .likeCount(product.getLikeCount())
+                        .createdAt(product.getCreatedAt())
+                        .imageUrls(imageMap.getOrDefault(product.getId(), List.of()))
+                        .tags(tagMap.getOrDefault(product.getId(), List.of()))
+                        .build())
+                .toList();
     }
 }
