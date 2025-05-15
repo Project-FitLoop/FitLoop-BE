@@ -1,5 +1,6 @@
 package fitloop.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fitloop.common.exception.errorcode.CommonErrorCode;
 import fitloop.member.jwt.CustomLogoutFilter;
 import fitloop.member.jwt.JWTFilter;
@@ -8,6 +9,8 @@ import fitloop.member.jwt.LoginFilter;
 import fitloop.member.oauth.OAuth2SuccessHandler;
 import fitloop.member.repository.RefreshRepository;
 import fitloop.member.repository.UserRepository;
+import fitloop.member.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,9 +28,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -42,16 +43,22 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final UserService userService;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil,
-                          RefreshRepository refreshRepository, OAuth2SuccessHandler oAuth2SuccessHandler,
-                          UserRepository userRepository, RedisTemplate<String, String> redisTemplate) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration,
+                          JWTUtil jwtUtil,
+                          RefreshRepository refreshRepository,
+                          OAuth2SuccessHandler oAuth2SuccessHandler,
+                          UserRepository userRepository,
+                          RedisTemplate<String, String> redisTemplate,
+                          UserService userService) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
         this.refreshRepository = refreshRepository;
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
+        this.userService = userService;
     }
 
     @Bean
@@ -81,7 +88,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         AuthenticationManager authenticationManager = authenticationManager();
 
-        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshRepository, userRepository, redisTemplate);
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, userRepository, userService);
         loginFilter.setFilterProcessesUrl("/api/v1/login");
 
         http
@@ -91,7 +98,8 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/google", "/api/v1/login", "/api/v1/register",
+                        .requestMatchers(
+                                "/api/v1/google", "/api/v1/login", "/api/v1/register",
                                 "/api/v1/reissue", "/api/v1/login/oauth2/code/google",
                                 "/api/v1/oauth2/authorization/google", "/api/v1/auth/**", "/api/v1/products/recent"
                         ).permitAll()
