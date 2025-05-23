@@ -154,7 +154,7 @@ public class UserService {
         RefreshEntity entity = RefreshEntity.builder()
                 .username(username)
                 .refresh(refreshToken)
-                .expiration(expiration.toString())
+                .expiration(expiration)
                 .firstIssuedAt(now)
                 .lastReissuedAt(now)
                 .build();
@@ -168,7 +168,7 @@ public class UserService {
         refreshRepository.save(RefreshEntity.createRenewed(
                 username,
                 newToken,
-                new Date(System.currentTimeMillis() + 86_400_000L).toString(),
+                LocalDateTime.now().plusDays(1),
                 firstIssuedAt != null ? firstIssuedAt : LocalDateTime.now()
         ));
     }
