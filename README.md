@@ -172,6 +172,9 @@ FITLOOP 백엔드는 Spring Boot & Spring Security 기반으로 구축되었으�
 <br>
 <br>
 
+### ⚙️ ERD 설계
+- [ERD 설계 보기](https://www.erdcloud.com/d/Ey2588ifii9X4k5A9)
+
 ## 📚 API 명세 (Swagger 기반)
 
 FITLOOP 프로젝트는 Swagger(OpenAPI 3.0)를 활용하여 REST API 명세를 자동화하였으며, SwaggerHub를 통해 팀원들과 API 문서를 공유하고 관리하고 있습니다.
@@ -179,7 +182,6 @@ FITLOOP 프로젝트는 Swagger(OpenAPI 3.0)를 활용하여 REST API 명세를 
 ### 🔗 API 문서 보기
 
 - [SwaggerHub 문서 보기](https://app.swaggerhub.com/apis/none-f10-fb1/fitloop-api/1.0.0)
-- 
 - 또는 `fitloop-api.yaml` 파일을 Postman 또는 Swagger Editor에서 불러와 사용 가능
 
 ---
