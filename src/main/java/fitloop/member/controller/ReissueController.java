@@ -1,18 +1,15 @@
 package fitloop.member.controller;
 
 import fitloop.member.service.UserService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
-@ResponseBody
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
 public class ReissueController {
@@ -21,17 +18,6 @@ public class ReissueController {
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = null;
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("refresh".equals(cookie.getName())) {
-                    refreshToken = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        return userService.reissueTokens(refreshToken, response);
+        return userService.reissueTokens(request, response);
     }
 }
