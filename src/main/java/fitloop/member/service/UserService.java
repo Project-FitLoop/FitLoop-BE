@@ -12,6 +12,7 @@ import fitloop.member.repository.RefreshRepository;
 import fitloop.member.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -79,7 +79,8 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "프로필 작성 성공"));
     }
 
-    public ResponseEntity<?> reissueTokens(String refreshToken, HttpServletResponse response) {
+    public ResponseEntity<?> reissueTokens(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = extractCookie(request, "refresh");
         if (refreshToken == null) {
             return ResponseEntity.badRequest().body("리프레시 토큰이 존재하지 않습니다");
         }
@@ -104,7 +105,7 @@ public class UserService {
 
         if (firstIssuedAt != null) {
             Duration duration = Duration.between(firstIssuedAt, LocalDateTime.now());
-            if (duration.toMillis() > 1_209_600_000L) { // 14일
+            if (duration.toMillis() > 1_209_600_000L) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("리프레시 토큰 발급 유효기간(14일)을 초과했습니다.");
             }
@@ -117,14 +118,13 @@ public class UserService {
         String newRefresh = createRefreshToken(username, role);
 
         saveAccessTokenToRedis(username, role, newAccess);
-        renewRefreshToken(refreshToken, newRefresh, username, firstIssuedAt);
+        renewRefreshToken(refreshToken, newRefresh, username);
 
         response.addCookie(createAccessCookie(newAccess));
         response.addCookie(createRefreshCookie(newRefresh));
 
         return ResponseEntity.ok().build();
     }
-
 
     public String createAccessToken(String username, String role) {
         return jwtUtil.createJwt("access", username, role, 600_000L); // 10분
@@ -149,12 +149,12 @@ public class UserService {
 
     public void saveNewRefreshToken(String username, String refreshToken) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiration = now.plusDays(1); // 24시간
+        LocalDateTime expiration = now.plusDays(1);
 
         RefreshEntity entity = RefreshEntity.builder()
                 .username(username)
                 .refresh(refreshToken)
-                .expiration(expiration.toString())
+                .expiration(expiration)
                 .firstIssuedAt(now)
                 .lastReissuedAt(now)
                 .build();
@@ -162,14 +162,18 @@ public class UserService {
         refreshRepository.save(entity);
     }
 
-    public void renewRefreshToken(String oldToken, String newToken, String username, LocalDateTime firstIssuedAt) {
+    public void renewRefreshToken(String oldToken, String newToken, String username) {
+        Optional<RefreshEntity> oldEntityOpt = refreshRepository.findByRefresh(oldToken);
+        if (oldEntityOpt.isEmpty()) return;
+
+        RefreshEntity oldEntity = oldEntityOpt.get();
         refreshRepository.deleteByRefresh(oldToken);
 
         refreshRepository.save(RefreshEntity.createRenewed(
                 username,
                 newToken,
-                new Date(System.currentTimeMillis() + 86_400_000L).toString(),
-                firstIssuedAt != null ? firstIssuedAt : LocalDateTime.now()
+                oldEntity.getExpiration(),
+                oldEntity.getFirstIssuedAt()
         ));
     }
 
@@ -189,5 +193,15 @@ public class UserService {
         cookie.setSecure(false);
         cookie.setPath("/");
         return cookie;
+    }
+
+    private String extractCookie(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) return null;
+        for (Cookie cookie : request.getCookies()) {
+            if (cookie.getName().equals(name)) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

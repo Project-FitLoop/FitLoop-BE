@@ -24,7 +24,7 @@ public class RefreshEntity {
     private String refresh;
 
     @Column(nullable = false)
-    private String expiration;  // 실제로는 LocalDateTime 추천, 현재 구조 유지
+    private LocalDateTime expiration;
 
     @Column(nullable = false)
     private LocalDateTime firstIssuedAt;
@@ -32,11 +32,11 @@ public class RefreshEntity {
     @Column(nullable = false)
     private LocalDateTime lastReissuedAt;
 
-    public static RefreshEntity createRenewed(String username, String refresh, String expiration, LocalDateTime originalFirstIssuedAt) {
+    public static RefreshEntity createRenewed(String username, String refresh, LocalDateTime originalExpiration, LocalDateTime originalFirstIssuedAt) {
         return RefreshEntity.builder()
                 .username(username)
                 .refresh(refresh)
-                .expiration(expiration)
+                .expiration(originalExpiration)
                 .firstIssuedAt(originalFirstIssuedAt)
                 .lastReissuedAt(LocalDateTime.now())
                 .build();
